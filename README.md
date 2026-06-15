@@ -1,1 +1,1 @@
-# midterm_g576
+# GEOG 576 Midterm
