@@ -1,0 +1,43 @@
+ html,
+body {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.action-bar {
+    display: flex;
+    flex-direction: column; /* Force items to stack vertically */
+    gap: 10px; 
+    width: max-content; 
+    
+    position: absolute;
+    z-index: 10;
+    top: 15px;
+    right: 15px; 
+}
+
+.addRecordBtn {
+    display: block;     
+    text-align: center;    
+    text-decoration: none;
+    padding: 10px 15px;
+    background-color: #0070c0; 
+    color: white;
+    border-radius: 4px;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+.addRecordBtn:hover {
+    background-color: #005a87;
+}

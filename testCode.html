@@ -1,0 +1,1271 @@
+<!-- Lab 3 Code -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Hello again, AGOL! GEOG 576 Lab 3</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="" />
+
+  <!-- call the arcis api css and js library -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.25/"></script>
+
+  <!-- use css to style full-screen map -->
+  <style>  
+    html,  
+    body,  
+    #viewDiv {  
+      padding: 0;  
+      margin: 0;  
+      height: 100%;  
+      width: 100%;  
+    }  
+  </style> 
+
+</head>
+<body>
+
+  <!-- create div to hold the map  -->
+  <div id="viewDiv"></div> 
+
+ <!-- In Lab 2, I moved the script to the body because the page kept erroring out trying to look for the viewDiv element from the head before parsing the body -->
+  <script>  
+
+      // add require statement to call modules necessary for full screen map app 
+      require([
+        "esri/config", 
+        "esri/Map", 
+        "esri/views/MapView",
+        
+        // add modules for graphic and graphics layer
+        "esri/Graphic",
+        "esri/layers/GraphicsLayer",
+
+        // add module for feature layer
+        "esri/layers/FeatureLayer",
+
+        // adding in editor widget
+        "esri/widgets/Editor",
+
+        // add a legend widget
+        "esri/widgets/Legend",
+
+        // adding back in basemap gallery (wrapped in expand), locate, search widgets from lab 1
+        "esri/widgets/BasemapGallery",
+        "esri/widgets/Locate",
+        "esri/widgets/Search",
+        "esri/widgets/Expand"
+
+      ], function(esriConfig, Map, MapView, Graphic, GraphicsLayer, FeatureLayer, Editor, Legend, BasemapGallery, Locate, Search, Expand) {   
+      
+        // set API key and create map with basemap layer
+        esriConfig.apiKey = "AAPTaZ2rQpZ3e_kAjLMbAoRHR0g.._fqqp4bDNHHZdzTSsp9AO-QkJHtKqpaj-7Xv25F1YGAftgihPfF0YtKx3TlgjV1fIfgz5d5KD1tO1WludBUUE8UK14qZyasG6wdcyVgej-0RvTJlT6Cqr8NSnHJs2CR-QKtZ6cx1a-DlDQQytvHfcbHYyH2--XMqzLkkWez9t3HIMhqczJVoVTeXmERX-Sc_6OCF9zTuUnAuesDvugrzl5GUAN3LGTz2Zteo1pZkcrVPu2RRO94cFDhn8pvWIVGFeUSd7-icAT1_FDhHahp4";
+        const map = new Map({ 
+          basemap: "arcgis-community" // Challenge 2: Change intial basemap; I like the look of the arcgis-community basemap
+        });
+
+        // create map view, set center and scale, set container property to viewDiv
+        const view = new MapView({
+          map: map,
+          center: [140.77, 41.78], // Longitude, latitude - centered on Hakodate, Japan
+          container: "viewDiv", // Div element
+          scale: 45000
+        });
+
+        // add graphicsLayer constructor
+        const graphicsLayer = new GraphicsLayer({
+          title: "Local Landmarks Graphics"
+        });  
+        map.add(graphicsLayer);
+
+        // create point graphic to add to the map 
+        const point = { //Create a point  
+          type: "point",  
+          longitude: 140.7042,    // approx long lat of Mt. Hakodate
+          latitude: 41.7589
+        };
+
+        // define style for the point graphic
+        const simpleMarkerSymbol = {  
+          type: "simple-marker",  
+          style: "triangle",
+          color: [80, 200, 120],  // Emerald green color
+          outline: {  
+            color: [255, 255, 255], // White  
+            width: 1.5 // increased width slightly 
+          }  
+        };
+
+        // polygon geometry to represent Hakodate Station
+        const polygon = {
+          type: "polygon",
+          rings: [[ // makes a rectangle using approx coordinates of Hakodate Station
+            [140.7250, 41.7820], 
+            [140.7290, 41.7820], 
+            [140.7290, 41.7730],
+            [140.7250, 41.7730],
+            [140.7250, 41.7820]// closing the polygon with the starting point
+          ]]
+        };
+
+        // define style for polygon graphic
+        const simplePolySymbol = {
+          type: "simple-fill",
+          color: [255, 255, 255, 0.75], // added slight transparency so I can still see the basemap underneath
+          outline: {
+            color: [32, 144, 184],
+            width: 1
+          } 
+        }
+
+        // polyline geometry to represent very rough route from Hakodate Station to Mt. Hakodate
+        const polyline = {
+          type: "polyline",
+          paths: [
+            [140.7250, 41.7730], 
+            [140.720, 41.768], 
+            [140.715, 41.763], 
+            [140.7042, 41.7589] 
+          ]
+        }
+        
+        // style polyline graphic 
+        const simpleLineSymbol = {
+          type: "simple-line",
+          color: [32, 144, 184],
+          width: 1.5
+        }
+
+        // create popup template and define attributes for point, polygon, and polyline
+        const popupTemplate = {
+            title: "{Name}",
+            content: "{Description}"
+        }
+        const pointattributes = {
+            Name: "Mt. Hakodate",
+            Description: "A famous landmark in Hakodate, Japan. It is known for its stunning night view of the surrounding bay and city."
+        }
+        const plygnattributes = {
+            Name: "Hakodate Station",
+            Description: "The main train station and transport hub in Hakodate."
+        }
+        const lineattributes = {
+            Name: "Route from Hakodate Station to Mt. Hakodate Ropeway",
+            Description: "A popular walking route that takes about 25-30 minutes."
+        }
+
+        // create pointGraphic by adding geometry and symbol together
+        const pointGraphic = new Graphic({  
+          geometry: point,  
+          symbol: simpleMarkerSymbol,
+
+          // add popup properties
+          attributes: pointattributes,
+          popupTemplate: popupTemplate
+
+        });
+
+        //create polygonGraphic, add geometry and symbol, then attributes
+        const polygonGraphic = new Graphic({
+          geometry: polygon,
+          symbol: simplePolySymbol,
+          attributes: plygnattributes,
+          popupTemplate: popupTemplate
+        })
+
+        // create polylineGraphic, same method as above
+        const polylineGraphic = new Graphic({
+          geometry: polyline,
+          symbol: simpleLineSymbol,
+          attributes: lineattributes,
+          popupTemplate: popupTemplate
+        })
+
+        // add polygon and polyline graphics to the map
+        graphicsLayer.add(polygonGraphic);
+        graphicsLayer.add(polylineGraphic);
+        // add point graphic last so it renders on top of the polyline
+        graphicsLayer.add(pointGraphic);
+
+        // Challenge 3: add feature layer, modify popup content
+        // Define a pop-up for tourist attractions layer
+        const popupTouristAttractions = {
+          "title": "{name}", // in Japanese (not every feature has an English name)
+          "content": "<b>English Name:</b> {name_en}<br><b>Type:</b> {tourism}<br><b>Hours:</b> {opening_hours}<br><a href='{website}' target='_blank'>Visit Website</a>"
+        }
+
+        // add constructor for the tourist attractions feature layer. 
+        const touristAttractionsLayer = new FeatureLayer({
+          // I accessed the layer from AGOL. The original publisher is Steven Moore, who credits OpenStreetMap contributors for the data
+          url: "https://services-ap1.arcgis.com/iA7fZQOnjY9D67Zx/arcgis/rest/services/OSM_AS_Tourism/FeatureServer",
+        
+          //add the popup 
+          outFields: ["name", "name_en", "tourism", "opening_hours", "website"],
+          popupTemplate: popupTouristAttractions
+        });
+
+        map.add(touristAttractionsLayer);
+
+        // In Lab 2, I downloaded the original Japan Airports dataset from https://ourairports.com/countries/JP/ in csv format. I uploaded the csv to ArcGIS Online and published it as a hosted feature layer as instructed
+        // set up the airport icon
+        const airportRenderer = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          // airplane icon is from the Noun Project, attribution: Airplane by Annisa from <a href="https://thenounproject.com/browse/icons/term/airplane/" target="_blank" title="Airplane Icons">Noun Project</a> (CC BY 3.0)
+          "url": "https://raw.githubusercontent.com/HarpistHope/agol_lab/main/noun-airplane-7936713.png",
+          "width": "20px",
+          "height": "20px"
+        }
+      }
+
+      // set up heliport icon
+      const heliRenderer = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          // helicopter icon is from the Noun Project, attribution: Adrien Griveau <a href="https://thenounproject.com/icon/helicopter-1595852/" target="_blank" title="Helicopter">Noun Project</a> (CC BY 3.0)
+          "url": "https://raw.githubusercontent.com/HarpistHope/agol_lab/main/noun-helicopter-1595852.png",
+          "width": "20px",
+          "height": "20px"
+        }
+      }
+
+        //const to make the airport labels
+        const airportLabels = {
+          symbol: {
+            type: "text",
+            color: "#004D40",
+            haloColor: "#E0F2F1",
+            haloSize: "-5px",
+            font: {
+              size: "12px",
+              family: "Noto Sans",
+              style: "italic",
+              weight: "normal"
+            }
+          },
+
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.name"
+          }
+        };
+
+        // const to make heliport labels
+        const heliLabels = {
+          symbol: {
+            type: "text",
+            color: "#311B92",
+            haloColor: "#E0F2F1",
+            haloSize: "2px",
+            font: {
+              size: "12px",
+              family: "Noto Sans",
+              style: "italic",
+              weight: "normal"
+            }
+          },
+
+          labelPlacement: "above-center",
+          labelExpressionInfo: {
+            expression: "$feature.name"
+          }
+        };
+
+        // add constructor for the airports feature layer
+        const airportsLayer = new FeatureLayer({
+          url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/jp_airports_credit_ourairports/FeatureServer",
+          // call the icon
+          renderer: airportRenderer,
+          // sql filter for large airports (Hakodate Airport falls in this category)
+          definitionExpression: "type = 'large_airport'",
+          labelingInfo: [airportLabels] // add labels to the airports
+        });
+      
+        // add the airports layer to the map
+        map.add(airportsLayer);
+
+      // add constructor for the heliports feature layer
+      const heliportsLayer = new FeatureLayer({
+        url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/jp_airports_credit_ourairports/FeatureServer",
+        // call the heliport icon
+        renderer: heliRenderer,
+        // sql filter for heliports
+        definitionExpression: "type = 'heliport'",
+        labelingInfo: [heliLabels] // add labels to the heliports
+      });
+
+      // add heliports layer to the map
+      map.add(heliportsLayer);
+
+      // Lab 3 Challenge 1: Customize myAirport Layer Symbol with picture marker
+      // create the symbol/picture marker 
+      // (I used the same Noun Project airplane icon but changed the color to red with Adobe Express) Attribution: Airplane by Annisa from <a href="https://thenounproject.com/browse/icons/term/airplane/" target="_blank" title="Airplane Icons">Noun Project</a> (CC BY 3.0)
+      const myAirportPictureMarker = {
+      type: "picture-marker", 
+      url: "https://raw.githubusercontent.com/HarpistHope/agolrest_lab3/main/noun-airplane-7936713_editRed.png",
+      width: "20px",
+      height: "20px"
+      };
+
+      // create a renderer using the symbol
+      const myAirportRenderer = {
+        type: "simple",
+        symbol: myAirportPictureMarker
+      };
+
+      // Lab 3 Challenge 2: add dynamic label with airport code to myAirport layer 
+      const myAirportLabels = {
+        symbol: {
+          type: "text",
+          color: "#B71C1C", // red to match myAirport icon
+          haloColor: "#FFCDD2",
+          haloSize: "2px",
+          yoffset: 6, // I'm specifying the yoffset so the dynamic label doesn't drift too far below the icon
+          font: {
+            size: "12px",
+            family: "Noto Sans",
+            style: "italic",
+            weight: "normal",
+          }
+        },
+
+        labelPlacement: "below-center", // so it doesn't overlap the full airport name label 
+        labelExpressionInfo: {
+          expression: "$feature.AirportCode"
+        }
+      };
+
+      // adding the const for the My Airports feature layer
+      const myAirports = new FeatureLayer({
+        url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/MyAirports_GEOG576/FeatureServer",
+
+        // add airport code popup
+        outFields: ["AirportCode"],
+
+        // add symbol renderer
+        renderer: myAirportRenderer,
+
+        // add labels
+        labelingInfo: [myAirportLabels]
+      });
+
+      // add myAirports layer to the map
+      map.add(myAirports);
+
+      // Set the point layer's LayerInfo
+      const pointInfos = {
+      layer: myAirports
+      }
+
+      // Begin Editor constructor
+      const editor = new Editor({
+      view: view,
+      layerInfos: [pointInfos]
+      }); 
+
+      // wrap editor widget in another expand widget so it doesn't dominate the map initally loads
+      const editorExpand = new Expand({
+        view: view,
+        content: editor,
+        expandIcon: "pencil", // using pencil icon to indicate editing functionality
+        index: 0, // placed above basemap and legend
+        group: "primary" // add to primary group with basemap and legend expands so only one expand widget is open at a time
+      })
+
+      // Add the editor widget to the view
+      view.ui.add(editorExpand, {
+        position: "top-right"
+    });
+
+      // Lab 3 Challenge 3a: add a legend to the map
+      const legend = new Legend({
+        view: view,
+        layerInfos: [
+          {layer: myAirports, title: "My Airports"},
+          {layer: airportsLayer, title: "Major Airports"},
+          {layer: heliportsLayer, title: "Heliports"}
+        ]
+      });
+
+      // the legend is rather large, so I've wrap it in another expand widget
+      const legendExpand = new Expand({
+        view: view,
+        content: legend,
+        expandIcon: "legend",
+        group: "primary" // add to the primary group (with basemap and editor expands)
+      })
+
+      // add legendExpand 
+      view.ui.add(legendExpand, {
+        position: "top-right",
+        index: 2 // below editor and basemap gallery
+      });
+
+      // Lab 3 Challenge 3b: wrap basemap gallery widget inside the expand widget for improved UI/UX
+        const basemapGallery = new BasemapGallery({
+          view: view
+        });
+        const bmgExpand = new Expand({
+          view: view, 
+          content: basemapGallery,
+          expandIcon: "basemap",
+          group: "primary" // add to primary group with legend and editor expands
+        });
+
+        // Add basemap gallery expand widget to the top right corner of the view
+        view.ui.add(bmgExpand, {
+          position: "top-right",
+          index: 1 // placed below editor, above legend
+        });
+
+        // Lab 3 Challenge 4: add locate button
+        // create locate widget 
+        const locateWidget = new Locate({
+          view: view
+        });
+        // add locate widget to the top left corner of the view, below other elements
+        view.ui.add(locateWidget, {
+          position: "top-left",
+          index: 1
+        });
+
+        // Lab 3 Challenge 5: add search bar
+        // create search widget
+        const searchWidget = new Search({
+          view: view
+        });
+        // Add search widget in top left corner of the view, above locate widget and zoom controls
+        view.ui.add(searchWidget, {
+          position: "top-left",
+          index: 0
+        });
+
+      });  
+
+
+  </script>
+
+</body>
+</html>
+
+
+
+<!-- Lab 4 with midterm-required dive sites and dive events feature layers added -->
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <!-- meta for the browser to allow for mobile first -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+    <title>Data Collector for AGOL</title>
+
+    <!-- importing css and libraries for esri.js -- I moved these above my custom style so the arcgis style does not overwrite my own styles -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.26/"></script>
+
+    <!-- define custom css style -->
+    <style>
+        html,
+        body { /* adding mobile-first css viewport rules to the parent container (I think that's the body in this case?) */
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* adding css for survey button */
+
+        .addRecordBtn {
+            position: absolute;
+            z-index: 10;
+            top: 10px;
+            right: 10px;
+            background-color: #0079c1;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .addRecordBtn:hover {
+            background-color: #005a87;
+        }
+
+    </style>
+
+  </head>
+  <body>
+
+    <!-- add the survey button -->
+     <a href="https://arcg.is/1Kr9HG5" target="_blank" class="addRecordBtn">Add Record</a>
+
+    <!-- call the div 'viewDiv' -->
+     <div id="viewDiv"></div>
+
+    <!-- loading the modules - same as labs 2 and 3, I moved the script to the body to make sure viewDiv is already found/rendered before the script calls it -->
+     <script>
+        require([
+            "esri/config", 
+            "esri/Map", 
+            "esri/views/MapView", 
+            "esri/layers/TileLayer", // Added for your bathymetry layer
+            "esri/layers/FeatureLayer",
+            "esri/widgets/Locate",
+            "esri/widgets/Search",
+            "esri/widgets/Expand"
+        ], (esriConfig, Map, MapView, TileLayer, FeatureLayer, Locate, Search, Expand) => {
+           
+            // add API key (I am using the key set up in previous labs)
+            esriConfig.apiKey = "AAPTaZ2rQpZ3e_kAjLMbAoRHR0g.._fqqp4bDNHHZdzTSsp9AO-QkJHtKqpaj-7Xv25F1YGAftgihPfF0YtKx3TlgjV1fIfgz5d5KD1tO1WludBUUE8UK14qZyasG6wdcyVgej-0RvTJlT6Cqr8NSnHJs2CR-QKtZ6cx1a-DlDQQytvHfcbHYyH2--XMqzLkkWez9t3HIMhqczJVoVTeXmERX-Sc_6OCF9zTuUnAuesDvugrzl5GUAN3LGTz2Zteo1pZkcrVPu2RRO94cFDhn8pvWIVGFeUSd7-icAT1_FDhHahp4";
+       
+            // define the basemap
+            const map = new Map({
+                basemap: "dark-gray-vector"
+            });
+
+            // Challenge 1: Use Center and Zoom to load with inital extent of choice
+            const view = new MapView({
+                container: "viewDiv", // Reference to the DOM node that will contain the view
+                map: map, // References the map object
+                center: [-84.5068, 44.1822], // Center of Michigan
+                zoom: 6.5
+            });
+
+            // Load Bathymetry Tile Layer
+            const bathymetryLayer = new TileLayer({
+                url: "https://tiles.arcgis.com/tiles/As5CFN3ThbQpy8Ph/arcgis/rest/services/Bathymetry_of_the_Great_Lakes/MapServer"
+            });
+            map.add(bathymetryLayer);
+
+            // Load your Shipwreck Feature Layer
+            const shipwreckLayer = new FeatureLayer({
+                url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/MUPC_Shipwreck_Locations_2020_view/FeatureServer",
+                // You can add a popupTemplate here later to support the "dynamic condition updates" mentioned in your abstract!
+            });
+            map.add(shipwreckLayer);
+            
+            // define locate widget
+            const locateBtn = new Locate({
+                view: view,
+                geolocationOptions: { // setting up timing failsafe
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            });
+
+            // Handle location errors gracefully per the rubric (Gemini helped with the function outline)
+            locateBtn.on("locate-error", (event) => {
+                console.error("Locate Widget Error:", event.error);
+                
+                // Provide an alert message
+                alert("Unable to find your location. Please check your phone's privacy settings or ensure your GPS signal is strong.");
+            });
+
+            // Add the locate widget to the top left corner of the view, below search and zoom widgets
+            view.ui.add(locateBtn, {
+                position: "top-left",
+                index: 2
+            });
+
+             // Challenge 2: add address search bar 
+            // create search widget
+            const searchWidget = new Search({
+                view: view
+            });
+
+            // because the Add Record button takes up a lot of space, I placed the search widget within an expand widget
+            const searchExpand = new Expand({
+                view: view,
+                content: searchWidget,
+                expandIcon: "search" 
+            });
+
+            // Add search widget within expand widgetin top left corner of the view, above other widgets
+            view.ui.add(searchExpand, {
+            position: "top-left",
+            index: 0
+            });
+
+            // Create featurelayer from feature service (url from survey results)
+            const siteslayer = new FeatureLayer({ 
+                // URL to the results of the dive sites survey feature layer 
+                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_545711b0719d4502811e6c2c705bf508_results/FeatureServer"
+                });
+
+            // add sites layer to the map
+            map.add(siteslayer);
+
+            // Create featurelayer from feature service (url from survey results)
+            const eventslayer = new FeatureLayer({ 
+                // URL to the results of the dive events survey feature layer 
+                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_930afbf904a4467f970813922117a325_results/FeatureServer"
+                });
+
+            // add sites layer to the map
+            map.add(eventslayer);
+
+            // // final failsafe verifies layer loads correctly or fails with an alert message
+            // layer.load().catch((error) => {
+            //     console.error("FeatureLayer failed to load:", error);
+            //     alert("Notice: The survey data layer is temporarily unavailable. You can still add a record using the submission form above.");
+            // });
+            // Add failsafes for future bathymetry and shipwreck layers
+            // bathymetryLayer.load().catch((error) => console.error("Bathymetry layer failed to load:", error));
+            // shipwreckLayer.load().catch((error) => console.error("Shipwreck layer failed to load:", error));
+
+        });
+
+    </script>
+
+  </body>
+</html>
+
+
+
+
+<!-- Sample Code Structure for the Midterm : -->
+
+<!-- Index: -->
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>GoDivePure - Michigan Web GIS</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script src="https://js.arcgis.com/4.26/"></script>
+</head>
+<body>
+
+    <div class="action-bar">
+        <a href="https://arcg.is/1Kr9HG5" target="_blank" class="addRecordBtn">Log New Site</a>
+        </div>
+
+    <div id="viewDiv"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
+
+<!-- style.css -->
+ html,
+body {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.action-bar {
+    position: absolute;
+    z-index: 10;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.addRecordBtn {
+    background-color: #0079c1;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: sans-serif;
+}
+
+.addRecordBtn:hover {
+    background-color: #005a87;
+}
+
+
+<!-- map.js -->
+ // Spatial: manages map layer loading and configurations
+export function initMap(viewContainerId, apiKey) {
+    return new Promise((resolve, reject) => {
+        require([
+            "esri/config", 
+            "esri/Map", 
+            "esri/views/MapView", 
+            "esri/layers/TileLayer", 
+            "esri/layers/FeatureLayer"
+        ], (esriConfig, Map, MapView, TileLayer, FeatureLayer) => {
+            
+            try {
+                esriConfig.apiKey = apiKey;
+
+                const map = new Map({
+                    basemap: "dark-gray-vector"
+                });
+
+                const view = new MapView({
+                    container: viewContainerId,
+                    map: map,
+                    center: [-84.5068, 44.1822], // Michigan
+                    zoom: 6.5
+                });
+
+                // Load Bathymetry Tile Layer
+                const bathymetryLayer = new TileLayer({
+                    url: "https://tiles.arcgis.com/tiles/As5CFN3ThbQpy8Ph/arcgis/rest/services/Bathymetry_of_the_Great_Lakes/MapServer"
+                });
+                map.add(bathymetryLayer);
+
+                // Load underwater preserves feature layer
+                const preservesLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/Great_Lakes_Underwater_Preserves/FeatureServer"
+                });
+                map.add(preservesLayer)
+
+                // Load Shipwreck Feature Layer
+                const shipwreckLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/MUPC_Shipwreck_Locations_2020_view/FeatureServer"
+                });
+                map.add(shipwreckLayer);
+
+                // Create/load dive sites feature layer from feature service (url from survey results)
+                const sitesLayer = new FeatureLayer({ 
+                    // URL to the results of the dive sites survey feature layer 
+                    url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_545711b0719d4502811e6c2c705bf508_results/FeatureServer"
+                    });
+                map.add(sitesLayer);
+
+                // Create/load dive events feature layer from feature service (url from survey results)
+                const eventsLayer = new FeatureLayer({ 
+                    // URL to the results of the dive events survey feature layer 
+                    url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_930afbf904a4467f970813922117a325_results/FeatureServer"
+                    });
+                map.add(eventsLayer);
+
+                // To help catch errors, log load errors to the console as necessary 
+                bathymetryLayer.load().catch(err => console.error("Runtime Error: Bathymetry layer failed", err));
+                preservesLayer.load().catch(err => console.error("Runtime Error: Preserves layer failed", err));
+                shipwreckLayer.load().catch(err => console.error("Runtime Error: Shipwrecks layer failed", err));
+                sitesLayer.load().catch(err => console.error("Runtime Error: Dive Sites layer failed", err));
+                eventsLayer.load().catch(err => console.error("Runtime Error: Dive Events layer failed", err));
+
+                // Return the view so other modules (like location) can attach widgets to it
+                resolve(view);
+                } catch (error) {
+                reject(error);
+            }
+        });
+    });
+}
+
+
+<!-- loction.js -->
+ // Geolocation: handles tracking, widgets, and accuracy monitors
+export function setupLocationServices(view) {
+    require(["esri/widgets/Locate"], (Locate) => {
+        const locateBtn = new Locate({
+            view: view,
+            geolocationOptions: {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        });
+
+        // Defensive error handling for logical/hardware runtime limitations
+        locateBtn.on("locate-error", (event) => {
+            console.error("Locate Widget Error:", event.error);
+            alert("Unable to find your location. Please check your boat or phone's GPS settings.");
+        });
+
+        view.ui.add(locateBtn, {
+            position: "top-left",
+            index: 2
+        });
+    });
+}
+
+
+<!-- main.js -->
+ // Bootstrap: coordinates mapping logic and boots the application
+import { initMap } from './map.js';
+import { setupLocationServices } from './location.js';
+
+// Use API key set up in previous labs
+const API_KEY = "AAPTaZ2rQpZ3e_kAjLMbAoRHR0g.._fqqp4bDNHHZdzTSsp9AO-QkJHtKqpaj-7Xv25F1YGAftgihPfF0YtKx3TlgjV1fIfgz5d5KD1tO1WludBUUE8UK14qZyasG6wdcyVgej-0RvTJlT6Cqr8NSnHJs2CR-QKtZ6cx1a-DlDQQytvHfcbHYyH2--XMqzLkkWez9t3HIMhqczJVoVTeXmERX-Sc_6OCF9zTuUnAuesDvugrzl5GUAN3LGTz2Zteo1pZkcrVPu2RRO94cFDhn8pvWIVGFeUSd7-icAT1_FDhHahp4";
+
+// Initialize the spatial interface safely
+initMap("viewDiv", API_KEY)
+    .then((view) => {
+        console.log("Map View initialized successfully.");
+        
+        // Setup Search widget inside Main logic or extend here
+        require(["esri/widgets/Search", "esri/widgets/Expand"], (Search, Expand) => {
+            const searchWidget = new Search({ view: view });
+            const searchExpand = new Expand({
+                view: view,
+                content: searchWidget,
+                expandIcon: "search"
+            });
+            view.ui.add(searchExpand, { position: "top-left", index: 0 });
+        });
+
+        // Kickoff Geolocation layer integration
+        setupLocationServices(view);
+    })
+    .catch((err) => {
+        console.error("Critical Failure: App bootstrapping aborted.", err);
+    });
+
+
+
+
+
+
+    <!-- Full map.js -->
+     // map.js manages map layer loading and configurations
+export function initMap(viewContainerId, apiKey) {
+    return new Promise((resolve, reject) => {
+        require([
+            "esri/config", 
+            "esri/Map", 
+            "esri/views/MapView", 
+            "esri/layers/TileLayer", 
+            "esri/layers/FeatureLayer",
+            "esri/widgets/Legend", 
+            "esri/widgets/Expand"
+        ], (esriConfig, Map, MapView, TileLayer, FeatureLayer, Legend, Expand) => {
+            
+            // I wrap the script in a try/catch statement to help catch errors
+            try {
+                // apiKey is defined in main.js
+                esriConfig.apiKey = apiKey;
+
+                const map = new Map({
+                    basemap: "oceans"
+                });
+
+                // construct the map view
+                const view = new MapView({
+                    container: viewContainerId,
+                    map: map,
+                    center: [-84.5068, 44.1822], // Michigan
+                    zoom: 7,
+                    
+                    // I added constraints to improve rendering/load time by restricting the map from panning/zooming to global scales
+                    constraints: {
+                        minZoom: 5, 
+                        maxZoom: 16,
+                        geometry: {   // Extent bounding box centered around Michigan
+                            type: "extent",
+                            xmin: -90.5,
+                            ymin: 41.5,
+                            xmax: -82.0,
+                            ymax: 49.0
+                        }
+                    }
+                });
+
+                // Popups based on format from Lab 3
+                // Shipwreck popup
+                const shipwreckPopup = {
+                    title: "🚢 Wreck: {Vessel}",
+                    
+                    // Use arcade expressions to change the popup content depending on the scuba difficulty
+                    expressionInfos: [{
+                        name: "difficulty-warning",
+                        title: "Safety Advisory",
+                        expression: `
+                            if ($feature.ScubaDifficulty == 'Advanced') {
+                                return '⚠️ ADVANCED DIVE: Proper training and equipment required.';
+                            } else if ($feature.ScubaDifficulty == 'Technical') {
+                                return '🚫 TECHNICAL DIVE: Deep water/overhead environment hazard.';
+                            } else {
+                                return '✅ Difficulty: ' + $feature.ScubaDifficulty;
+                            }
+                        `
+                    }],
+                    
+                    content: [
+                        {
+                            type: "text",
+                            text: `
+                                <div style="font-weight: bold; color: #b30000; margin-bottom: 8px;">
+                                    {expression/difficulty-warning}
+                                </div>
+                                <table class="esri-widget__table" style="width:100%; border-collapse:collapse;">
+                                    <tr><th style="text-align:left; padding:4px;">Vessel Type:</th><td style="padding:4px;">{VesselType}</td></tr>
+                                    <tr><th style="text-align:left; padding:4px;">Year Built:</th><td style="padding:4px;">{Built}</td></tr>
+                                    <tr><th style="text-align:left; padding:4px;">Year Lost:</th><td style="padding:4px;">{LostYR}</td></tr>
+                                    <tr><th style="text-align:left; padding:4px;">Depth:</th><td style="padding:4px;">{Depth}</td></tr>
+                                    <tr><th style="text-align:left; padding:4px;">Cargo:</th><td style="padding:4px;">{Cargo}</td></tr>
+                                    <tr><th style="text-align:left; padding:4px;">Paddler Accessible:</th><td style="padding:4px;">{SnorkelKayakAssessible}</td></tr>
+                                </table>
+                                <p style="margin-top:10px; font-size:13px; line-height:1.4;">{Description}</p>
+                            `
+                        }
+                    ]
+                };
+
+                // Underwater Preserves Popup
+                const preservesPopup = {
+                    title: "🛡️ {BP_Name} Underwater Preserve",
+                    content: `
+                        <div style="font-family: sans-serif; line-height: 1.5;">
+                            <p>The <b>{BP_Name}</b> protects historic shipwrecks and unique maritime archaeological sites across the Great Lakes.</p>
+                            <table class="esri-widget__table" style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+                                <tr>
+                                    <th style="text-align:left; padding:4px; background-color:#f4f4f4;">Protected Area:</th>
+                                    <td style="padding:4px;">{Acres} Acres</td>
+                                </tr>
+                            </table>
+                            <a href="{HT_Link}" target="_blank" class="esri-button esri-button--secondary">
+                                Explore More &rarr;
+                            </a>
+                        </div>
+                    `
+                };
+
+                // Dive Sites Popup 
+                const sitesPopup = {
+                    title: "🤿 Crowdsourced Dive Site",
+                    content: `
+                        <div style="font-family: sans-serif; line-height: 1.5;">
+                            <table class="esri-widget__table" style="width:100%; border-collapse:collapse; margin-bottom:8px;">
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4; width:40%;">Difficulty:</th>
+                                    <td style="padding:6px; font-weight:bold;">{scuba_difficulty}</td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4;">Date Logged:</th>
+                                    <td style="padding:6px;">{date_of_entry}</td>
+                                </tr>
+                            </table>
+                            
+                            <h4 style="margin: 12px 0 4px 0; color: #0070c0;">Current Conditions</h4>
+                            <p style="margin: 0 0 12px 0; font-size: 13px; font-style: italic; color: #555;">
+                                {current_conditions_optional}
+                            </p>
+                            
+                            <h4 style="margin: 0 0 4px 0; color: #0070c0;">Site Description</h4>
+                            <p style="margin: 0; font-size: 13px; line-height: 1.4;">
+                                {site_description_optional}
+                            </p>
+                        </div>
+                    `
+                };
+
+                // Dive Events popup
+                const eventsPopup = {
+                    title: "📅 Group Dive Meetup Event",
+                    content: `
+                        <div style="font-family: sans-serif; line-height: 1.5;">
+                            <table class="esri-widget__table" style="width:100%; border-collapse:collapse; margin-bottom:8px;">
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4; width:45%;">Event Date:</th>
+                                    <td style="padding:6px; font-weight:bold; color: #b30000;">{event_date}</td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4;">Meetup Time:</th>
+                                    <td style="padding:6px;">{meetup_time}</td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4;">Target Difficulty:</th>
+                                    <td style="padding:6px;">{scuba_difficulty}</td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4;">Expected Max Depth:</th>
+                                    <td style="padding:6px;">{expected_max_depth_in_feet} ft</td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:left; padding:6px; background-color:#f4f4f4;">Est. Duration:</th>
+                                    <td style="padding:6px;">{expected_duration_optional} hours</td>
+                                </tr>
+                            </table>
+                            
+                            <h4 style="margin: 12px 0 4px 0; color: #0070c0;">Additional Details</h4>
+                            <p style="margin: 0; font-size: 13px; line-height: 1.4;">
+                                {additional_details_optional}
+                            </p>
+                            
+                            <div style="font-size: 11px; color: #888; margin-top: 12px; text-align: right;">
+                                Organized by: {Creator}
+                            </div>
+                        </div>
+                    `
+                };
+
+                //Customized renders/icons
+                // First customize the preserves layer so the user can see the layer more clearly (it was initially the same blue as the bathymetry layer)
+                const preservesRenderer = {
+                    type: "simple", // Symbolize all features in the layer the same way
+                    symbol: {
+                        type: "simple-fill", 
+                        color: [255, 110, 0, 0.20], 
+                        outline: {
+                            color: [255, 85, 0, 0.85], 
+                            width: 1.5
+                        }
+                    }
+                };
+
+                // customize sites renderer/icon (scuba icon attribution: Scuba by Yosua Bungaran from Noun Project (CC BY 3.0))
+                const sitesRenderer = {
+                    type: "simple",
+                    symbol: {
+                        type: "picture-marker",
+                        // You can use a local path (e.g., "images/snorkel.png") or an image URL:
+                        url: "images/noun-scuba-canva.png", 
+                        width: "24px",
+                        height: "24px"
+                    }
+                };
+
+                // customize events renderer/icon (events icon attribution: Calendar by BEARicons from Noun Project (CC BY 3.0))
+                const eventsRenderer = {
+                    type: "simple",
+                    symbol: {
+                        type: "picture-marker",
+                        url: "images/noun-calendar-canva.png", 
+                        width: "24px",
+                        height: "24px"
+                    }
+                };
+
+                // Load the tile/feature layers
+                // Load Bathymetry Tile Layer
+                const bathymetryLayer = new TileLayer({
+                    url: "https://tiles.arcgis.com/tiles/As5CFN3ThbQpy8Ph/arcgis/rest/services/Bathymetry_of_the_Great_Lakes/MapServer",
+                    resampling: true, // added so the layer would still render (if slightly pixilated) when zoomed in
+                    maxScale: 70000 // Since it still won't render when fully zoomed in, I added this to stop drawing right at its crispest limit before it snaps natively
+                });
+                map.add(bathymetryLayer);
+
+                // Load underwater preserves feature layer
+                const preservesLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/Great_Lakes_Underwater_Preserves/FeatureServer",
+                    outFields: ["BP_Name", "Acres", "HT_Link"],
+                    renderer: preservesRenderer, 
+                    popupTemplate: preservesPopup  
+                });
+                map.add(preservesLayer);
+
+                // Load Shipwreck Feature Layer
+                const shipwreckLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/MUPC_Shipwreck_Locations_2020_view/FeatureServer",
+                    outFields: [
+                        "Vessel", "VesselType", "Built", "LostYR", "Depth", 
+                        "Cargo", "SnorkelKayakAssessible", "ScubaDifficulty", "Description"
+                    ],
+                    popupTemplate: shipwreckPopup
+                });
+                map.add(shipwreckLayer);
+
+                // Create/load dive sites feature layer from feature service (survey results)
+                const sitesLayer = new FeatureLayer({ 
+                    url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_545711b0719d4502811e6c2c705bf508_results/FeatureServer",
+                    renderer: sitesRenderer,
+                    outFields: ["scuba_difficulty", "date_of_entry", "current_conditions_optional", "site_description_optional"],
+                    popupTemplate: sitesPopup
+                });
+                map.add(sitesLayer);
+
+                // Create/load dive events feature layer from feature service (survey results)
+                const eventsLayer = new FeatureLayer({ 
+                    url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_930afbf904a4467f970813922117a325_results/FeatureServer",
+                    renderer: eventsRenderer,
+                    outFields: ["event_date", "meetup_time", "scuba_difficulty", "expected_max_depth_in_feet", "expected_duration_optional", "additional_details_optional", "Creator"],
+                    popupTemplate: eventsPopup
+                });
+                map.add(eventsLayer);
+                
+                // Add the legend
+                const legendWidget = new Legend({
+                    view: view
+                });
+
+                // Wrap legend inside expand widget
+                const legendExpand = new Expand({
+                    view: view,
+                    content: legendWidget,
+                    expandIcon: "legend", 
+                    expandTooltip: "Show Map Legend", // added a tooltip to help prompt desktop users
+                    group: "top-right" // adding to a group to ensure only one panel is open at a time
+                });
+                view.ui.add(legendExpand, "top-right");
+
+                // One main feature of my app is the unified control panel that allows users to toggle feature layers and filter by certain attributes
+                // I first tried to use a layers list but that widget does not have Filter by Attribute capabilities so I had to custom make a new panel
+                // As the design became fairly technical, I utilized the AI assistant to help explain and implement the full panel design
+
+                //Create a styled container for the unified control panel
+                const controlPanelContainer = document.createElement("div");
+                controlPanelContainer.style.padding = "14px";
+                controlPanelContainer.style.backgroundColor = "#ffffff";
+                controlPanelContainer.style.fontFamily = "sans-serif";
+                controlPanelContainer.style.fontSize = "14px";
+                controlPanelContainer.style.borderRadius = "4px";
+                controlPanelContainer.style.width = "260px";
+                controlPanelContainer.style.boxShadow = "0 1px 4px rgba(0,0,0,0.3)";
+
+                // Define the custom HTML structure (Toggles + Multiple Select Dropdowns)
+                controlPanelContainer.innerHTML = `
+                    <h3 style="margin: 0 0 12px 0; font-size: 15px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 6px;">
+                        ⚙️ Map Controls
+                    </h3>
+                    
+                    <div style="margin-bottom: 14px;">
+                        <span style="font-weight: bold; display: block; margin-bottom: 6px; color: #555;">Toggle Layers</span>
+                        
+                        <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer;">
+                            <input type="checkbox" id="toggleBathymetry" checked style="margin-right: 8px;"> Great Lakes Bathymetry
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer;">
+                            <input type="checkbox" id="togglePreserves" checked style="margin-right: 8px;"> Underwater Preserves
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer;">
+                            <input type="checkbox" id="toggleShipwrecks" checked style="margin-right: 8px;"> Historic Shipwrecks
+                        </label>
+
+                        <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer; color: #005a9e; font-weight: 500;">
+                            <input type="checkbox" id="toggleSites" checked style="margin-right: 8px;"> 🤿 User Dive Sites
+                        </label>
+
+                        <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer; color: #b30000; font-weight: 500;">
+                            <input type="checkbox" id="toggleEvents" checked style="margin-right: 8px;"> 📅 Planned Meetups
+                        </label>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #eee; padding-top: 10px;">
+                        <span style="font-weight: bold; display: block; margin-bottom: 8px; color: #555;">Filter Features</span>
+                        
+                        <div style="margin-bottom: 10px;">
+                            <label for="panelDifficultyFilter" style="font-size: 12px; color: #666; display: block; margin-bottom: 3px;">
+                                Historic Wrecks by Skill:
+                            </label>
+                            <select id="panelDifficultyFilter" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
+                                <option value="all">🌐 Show All Wrecks</option>
+                                <option value="Beginner">🟢 Beginner Sites</option>
+                                <option value="Intermediate">🟡 Intermediate Sites</option>
+                                <option value="Advanced">🔴 Advanced Sites</option>
+                                <option value="Technical">🚫 Technical Sites</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="panelEventDepthFilter" style="font-size: 12px; color: #666; display: block; margin-bottom: 3px;">
+                                Group Meetups by Planned Depth:
+                            </label>
+                            <select id="panelEventDepthFilter" style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
+                                <option value="all">🌐 All Depths</option>
+                                <option value="shallow">⚓ Shallow (< 30 ft)</option>
+                                <option value="recreational">🌊 Recreational (30 - 100 ft)</option>
+                                <option value="deep">nautilus Deep (> 100 ft)</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+
+                // Wrap the panel inside an Expand widget drawer
+                const controlPanelExpand = new Expand({
+                    view: view,
+                    content: controlPanelContainer,
+                    expandIcon: "sliders", // Crisp built-in settings icon
+                    expandTooltip: "Open Map Controls",
+                    group: "top-right"      // Syncs with your Legend expand widget!
+                });
+                view.ui.add(controlPanelExpand, "top-right");
+
+// Wire up the interactive event listeners
+                view.when(() => {
+                    // --- Layer Visibility Listeners ---
+                    controlPanelContainer.querySelector("#toggleBathymetry").addEventListener("change", (e) => {
+                        bathymetryLayer.visible = e.target.checked;
+                    });
+                    
+                    controlPanelContainer.querySelector("#togglePreserves").addEventListener("change", (e) => {
+                        preservesLayer.visible = e.target.checked;
+                    });
+                    
+                    controlPanelContainer.querySelector("#toggleShipwrecks").addEventListener("change", (e) => {
+                        shipwreckLayer.visible = e.target.checked;
+                    });
+
+                    controlPanelContainer.querySelector("#toggleSites").addEventListener("change", (e) => {
+                        sitesLayer.visible = e.target.checked;
+                    });
+
+                    controlPanelContainer.querySelector("#toggleEvents").addEventListener("change", (e) => {
+                        eventsLayer.visible = e.target.checked;
+                    });
+
+                    // --- Attribute Filter: Shipwreck Difficulty ---
+                    controlPanelContainer.querySelector("#panelDifficultyFilter").addEventListener("change", (e) => {
+                        const selectedValue = e.target.value;
+                        if (selectedValue === "all") {
+                            shipwreckLayer.definitionExpression = null;
+                        } else {
+                            shipwreckLayer.definitionExpression = `ScubaDifficulty = '${selectedValue}'`;
+                        }
+                    });
+
+                    // --- Attribute Filter: Event Max Planned Depth ---
+                    controlPanelContainer.querySelector("#panelEventDepthFilter").addEventListener("change", (e) => {
+                        const selectedValue = e.target.value;
+                        
+                        if (selectedValue === "all") {
+                            eventsLayer.definitionExpression = null;
+                        } else if (selectedValue === "shallow") {
+                            // Standard Open Water beginner limits
+                            eventsLayer.definitionExpression = "expected_max_depth_in_feet <= 30";
+                        } else if (selectedValue === "recreational") {
+                            // Deep recreational sports limits
+                            eventsLayer.definitionExpression = "expected_max_depth_in_feet > 30 AND expected_max_depth_in_feet <= 100";
+                        } else if (selectedValue === "deep") {
+                            // Technical / deep trimix range limits
+                            eventsLayer.definitionExpression = "expected_max_depth_in_feet > 100";
+                        }
+                    });
+                });
+                
+                // Runtime error tracking
+                bathymetryLayer.load().catch(err => console.error("Runtime Error: Bathymetry layer failed", err));
+                preservesLayer.load().catch(err => console.error("Runtime Error: Preserves layer failed", err));
+                shipwreckLayer.load().catch(err => console.error("Runtime Error: Shipwrecks layer failed", err));
+                sitesLayer.load().catch(err => console.error("Runtime Error: Dive Sites layer failed", err));
+                eventsLayer.load().catch(err => console.error("Runtime Error: Dive Events layer failed", err));
+
+                resolve(view);
+            } catch (error) { 
+                reject(error);
+            }
+        });
+    });
+}
