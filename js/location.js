@@ -13,7 +13,7 @@ export function setupLocationServices(view) {
         // Defensive error handling for logical/hardware runtime limitations
         locateBtn.on("locate-error", (event) => {
             console.error("Locate Widget Error:", event.error);
-            alert("Unable to find your location. Please check your boat or phone's GPS settings.");
+            alert("Unable to find your location. Please check your desktop, phone or boat's GPS settings.");
         });
 
         view.ui.add(locateBtn, {

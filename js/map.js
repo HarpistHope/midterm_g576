@@ -8,8 +8,10 @@ export function initMap(viewContainerId, apiKey) {
             "esri/layers/TileLayer", 
             "esri/layers/FeatureLayer",
             "esri/widgets/Legend", 
-            "esri/widgets/Expand"
-        ], (esriConfig, Map, MapView, TileLayer, FeatureLayer, Legend, Expand) => {
+            "esri/widgets/Expand",
+            "esri/widgets/Zoom",
+            "esri/widgets/Editor"
+        ], (esriConfig, Map, MapView, TileLayer, FeatureLayer, Legend, Expand, Zoom, Editor) => {
             
             // I wrap the script in a try/catch statement to help catch errors
             try {
@@ -17,20 +19,20 @@ export function initMap(viewContainerId, apiKey) {
                 esriConfig.apiKey = apiKey;
 
                 const map = new Map({
-                    basemap: "oceans"
+                    basemap: "arcgis-nova"
                 });
 
                 // construct the map view
                 const view = new MapView({
                     container: viewContainerId,
                     map: map,
-                    center: [-84.5068, 44.1822], // Michigan
-                    zoom: 7,
+                    center: [-84.75, 44.45], // Michigan
+                    zoom: 5,
                     
                     // I added constraints to improve rendering/load time by restricting the map from panning/zooming to global scales
                     constraints: {
                         minZoom: 5, 
-                        maxZoom: 16,
+                        maxZoom: 11,
                         geometry: {   // Extent bounding box centered around Michigan
                             type: "extent",
                             xmin: -90.5,
@@ -38,10 +40,32 @@ export function initMap(viewContainerId, apiKey) {
                             xmax: -82.0,
                             ymax: 49.0
                         }
+                    },
+
+                    // Dock the popups when the screen size is below 600px (ie, mobile screens)
+                    popup: {
+                        dockEnabled: true,
+                        dockOptions: {
+                            buttonEnabled: false, // Prevents users from accidentally "undocking" it onto a tiny screen
+                            breakpoint: false,    // Forces docking behavior at ALL screen sizes, or use { width: 600 }
+                            position: "bottom-center" 
+                        }
+                    },
+
+                    // Manually remove the default widgets (except for attributions)  so I can manually add the zoom widget in a specific index position
+                    ui: {
+                        components: ["attribution"]
                     }
+
                 });
 
-                // Popups based on format from Lab 3
+                // To allow users to edit the crowdsourced layers (not just add new entries), define standard custom popup actions for crowdsourced layers
+                const editAction = {
+                    title: "Edit Submission",
+                    id: "edit-survey-record",
+                    className: "esri-icon-edit"
+                };
+
                 // Shipwreck popup
                 const shipwreckPopup = {
                     title: "Shipwreck: {Vessel}",
@@ -55,9 +79,9 @@ export function initMap(viewContainerId, apiKey) {
                             if ($feature.ScubaDifficulty == 'Advanced') {
                                 return '⚠️ ADVANCED DIVE: Proper training and equipment required.';
                             } else if ($feature.ScubaDifficulty == 'Technical') {
-                                return '🚫 TECHNICAL DIVE: Deep water/overhead environment hazard.';
+                                return '🚫 TECHNICAL DIVE: Deep water.';
                             } else {
-                                return '✅ Difficulty: ' + $feature.ScubaDifficulty;
+                                return '✅ Dive Difficulty: ' + $feature.ScubaDifficulty;
                             }
                         `
                     }],
@@ -85,7 +109,7 @@ export function initMap(viewContainerId, apiKey) {
 
                 // Underwater Preserves Popup
                 const preservesPopup = {
-                    title: "{BP_Name} Underwater Preserve",
+                    title: "{BP_Name}",
                     content: `
                         <div style="font-family: sans-serif; line-height: 1.5;">
                             <p>The <b>{BP_Name}</b> protects historic shipwrecks and unique maritime archaeological sites across the Great Lakes.</p>
@@ -209,17 +233,18 @@ export function initMap(viewContainerId, apiKey) {
                 };
 
                 // Load the tile/feature layers
-                // Load Bathymetry Tile Layer
+                // Load Bathymetry Tile Layer -- is there a way to make it still show up but less pixelated at high zoom levels? 
                 const bathymetryLayer = new TileLayer({
                     url: "https://tiles.arcgis.com/tiles/As5CFN3ThbQpy8Ph/arcgis/rest/services/Bathymetry_of_the_Great_Lakes/MapServer",
                     resampling: true, // added so the layer would still render (if slightly pixilated) when zoomed in
-                    maxScale: 70000 // Since it still won't render when fully zoomed in, I added this to stop drawing right at its crispest limit before it snaps natively
+                    maxScale: 70000 // I added this to force it to continue resampling up to a scale of 70000 (otherwise the layer would snap away too early/at too low a zoom)
                 });
-                map.add(bathymetryLayer);
+                map.add(bathymetryLayer); // I'm adding the index so my layers stack exactly how I want: bathmetry on the bottom, then preserves, then the point features
 
                 // Load underwater preserves feature layer
                 const preservesLayer = new FeatureLayer({
                     url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/Great_Lakes_Underwater_Preserves/FeatureServer",
+                    id: "preserves-layer", // assigning an ID to preserves layer and point feature layers to use in the zoom/center click event listener (see main.js)
                     outFields: ["BP_Name", "Acres", "HT_Link"],
                     renderer: preservesRenderer, 
                     popupTemplate: preservesPopup  
@@ -229,6 +254,7 @@ export function initMap(viewContainerId, apiKey) {
                 // Load Shipwreck Feature Layer
                 const shipwreckLayer = new FeatureLayer({
                     url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/MUPC_Shipwreck_Locations_2020_view/FeatureServer",
+                    id: "shipwrecks-layer",
                     outFields: [
                         "Vessel", "VesselType", "Built", "LostYR", "Depth", 
                         "Cargo", "SnorkelKayakAssessible", "ScubaDifficulty", "Description"
@@ -240,8 +266,10 @@ export function initMap(viewContainerId, apiKey) {
                 // Create/load dive sites feature layer from feature service (survey results)
                 const sitesLayer = new FeatureLayer({ 
                     url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_545711b0719d4502811e6c2c705bf508_results/FeatureServer",
+                    id: "sites-layer",
                     renderer: sitesRenderer,
                     outFields: ["scuba_difficulty", "date_of_entry", "current_conditions_optional", "site_description_optional"],
+                    editingEnabled: true, // allows users to update features as well
                     popupTemplate: sitesPopup
                 });
                 map.add(sitesLayer);
@@ -249,25 +277,57 @@ export function initMap(viewContainerId, apiKey) {
                 // Create/load dive events feature layer from feature service (survey results)
                 const eventsLayer = new FeatureLayer({ 
                     url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_930afbf904a4467f970813922117a325_results/FeatureServer",
+                    id: "events-layer",
                     renderer: eventsRenderer,
                     outFields: ["event_date", "meetup_time", "scuba_difficulty", "expected_max_depth_in_feet", "expected_duration_optional", "additional_details_optional", "Creator"],
+                    editingEnabled: true, // allows users to update features
                     popupTemplate: eventsPopup
                 });
                 map.add(eventsLayer);
+
+                // Setup dynamic link structure handler for to let users edit the survey entries
+                view.popup.on("trigger-action", (event) => {
+                    if (event.action.id === "edit-survey-record") {
+                        const targetFeature = view.popup.selectedFeature;
+                        const objectId = targetFeature.attributes.objectid || targetFeature.attributes.OBJECTID;
+                        let surveyFormId = "";
+
+                        if (targetFeature.layer === sitesLayer) {
+                            surveyFormId = "545711b0719d4502811e6c2c705bf508";
+                        } else if (targetFeature.layer === eventsLayer) {
+                            surveyFormId = "930afbf904a4467f970813922117a325";
+                        }
+
+                        if (surveyFormId && objectId) {
+                            const editUrl = `https://survey123.arcgis.com/share/${surveyFormId}?mode=edit&objectId=${objectId}`;
+                            window.open(editUrl, "_blank");
+                        }
+                    }
+                });
 
                 // One main feature of my app is the unified control panel that allows users to toggle feature layers and filter by certain attributes
                 // I first tried to use a layers list but that widget does not have Filter by Attribute capabilities so I had to custom make a new panel
                 // As the design became fairly technical, I utilized the AI assistant to help explain and implement the full panel design
 
-                //Create a styled container for the unified control panel
+                // //Create a styled container for the unified control panel
+                // const controlPanelContainer = document.createElement("div");
+                // controlPanelContainer.style.padding = "14px";
+                // controlPanelContainer.style.backgroundColor = "#ffffff";
+                // controlPanelContainer.style.fontFamily = "sans-serif";
+                // controlPanelContainer.style.fontSize = "14px";
+                // controlPanelContainer.style.borderRadius = "4px";
+                // controlPanelContainer.style.width = "260px";
+                // controlPanelContainer.style.boxShadow = "0 1px 4px rgba(0,0,0,0.3)";
+
+
                 const controlPanelContainer = document.createElement("div");
-                controlPanelContainer.style.padding = "14px";
-                controlPanelContainer.style.backgroundColor = "#ffffff";
-                controlPanelContainer.style.fontFamily = "sans-serif";
-                controlPanelContainer.style.fontSize = "14px";
-                controlPanelContainer.style.borderRadius = "4px";
-                controlPanelContainer.style.width = "260px";
-                controlPanelContainer.style.boxShadow = "0 1px 4px rgba(0,0,0,0.3)";
+                    controlPanelContainer.style.padding = "16px";
+                    controlPanelContainer.style.backgroundColor = "white"; // Deep ocean ice / AliceBlue blend
+                    controlPanelContainer.style.border = "2px solid #005b96"; 
+                    controlPanelContainer.style.borderRadius = "8px";
+                    controlPanelContainer.style.width = "260px";
+                    controlPanelContainer.style.boxShadow = "0 4px 10px rgba(0, 91, 150, 0.25)"; // Soft blue-tinted drop shadow
+
 
                 // Define the custom HTML structure (Toggles + Multiple Select Dropdowns)
                 controlPanelContainer.innerHTML = `
@@ -295,7 +355,7 @@ export function initMap(viewContainerId, apiKey) {
                         </label>
 
                         <label style="display: flex; align-items: center; margin-bottom: 5px; cursor: pointer;">
-                            <input type="checkbox" id="toggleEvents" checked style="margin-right: 8px;"> Planned Meetups
+                            <input type="checkbox" id="toggleEvents" checked style="margin-right: 8px;"> Planned Events
                         </label>
                     </div>
                     
@@ -338,18 +398,20 @@ export function initMap(viewContainerId, apiKey) {
                     </div>
                 `;
 
-                // Wrap the panel inside an Expand widget drawer
+                // Called in main.js to wrap the panel inside an Expand widget on a mobile device screen
                 const controlPanelExpand = new Expand({
                     view: view,
                     content: controlPanelContainer,
-                    expandIcon: "sliders", // I like the look of this icon, it strongly implies the widget can expand out into something more
+                    expandIcon: "sliders", // I like the look of this icon, it lets the user know the widget can expand out into something more
                     expandTooltip: "Open Map Controls",
-                    index: 1,
-                    group: "widgets" // I grouped all the expand widgets together so only one can be open at a time
+                    mode: "floating",
+                    id: "controlPanelExpand", // assigned ID for screen responsive managment 
+                    group: "widgets", // I grouped all the expand widgets together so only one can be open at a time
+                    index: 1
                 });
                 view.ui.add(controlPanelExpand, "top-left");
 
-                // Wire up the interactive event listeners
+                // Create the control panel with event listeners so users can toggle on and off all the layers
                 view.when(() => {
                     //Layer Visibility Listeners
                     controlPanelContainer.querySelector("#toggleBathymetry").addEventListener("change", (e) => {
@@ -437,6 +499,13 @@ export function initMap(viewContainerId, apiKey) {
                     });
                 });
                 
+                // add the zoom widget (removed above so I can manually specify the index position)
+                const zoomWidget = new Zoom({
+                    view: view,
+                    index: 2
+                });
+                view.ui.add(zoomWidget, "top-left");
+
                 // Add the legend
                 const legendWidget = new Legend({
                     view: view,
@@ -455,10 +524,44 @@ export function initMap(viewContainerId, apiKey) {
                     content: legendWidget,
                     expandIcon: "legend", 
                     expandTooltip: "Show Map Legend", // added a tooltip to help prompt desktop users
+                    mode: "floating",
                     group: "widgets", //  // Group all the expand widgets together so only one can be open at a time
                     index: 3
                 });
                 view.ui.add(legendExpand, "top-left");
+
+                // add edit widget so users can edit their events/sites entries
+                const editorWidget = new Editor({
+                    view: view,
+                    // using layerInfos to specify dive sites and events as the only layers users can edit (largely unnecessary since the other layers used in this app are unlikely to ever allow public editing but I figure better safe than sorry)
+                    layerInfos: [
+                        { layer: sitesLayer },
+                        { layer: eventsLayer }
+                    ]
+                });
+
+                // Wrap the edit features in expand
+                const editorExpand = new Expand({
+                    view: view,
+                    content: editorWidget,
+                    expandIcon: "pencil", 
+                    expandTooltip: "Edit Crowdsourced Data",
+                    group: "widgets",
+                    id: "editorExpand" // added so I can position/style with css
+                });
+                view.ui.add(editorExpand, "top-right");
+
+                // adding edit widget and Add/Log New... buttons to same container so they are all positioned properly in the top right corner of the screen
+                view.when(() => {
+                    // 1. Grab your existing HTML container element from index.html
+                    const actionControls = document.getElementById("actionBar");
+                    
+                    // 2. Add your custom HTML elements to the top-right UI slot first
+                    view.ui.add(actionControls, "top-right");
+                    
+                    // 3. Add your editor widget right after it in the same slot
+                    view.ui.add(editorExpand, "top-right");
+                });
 
                 // Runtime error tracking
                 bathymetryLayer.load().catch(err => console.error("Runtime Error: Bathymetry layer failed", err));

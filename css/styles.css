@@ -1,10 +1,21 @@
- html,
+/* ==========================================
+   1. GLOBAL STYLES & TYPOGRAPHY
+   ========================================== */
+html,
 body {
     height: 100vh;
     width: 100vw;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Force ArcGIS widgets and popups to inherit your font choice */
+.esri-widget, 
+.esri-popup__content,
+.esri-popup__header-title {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
 #viewDiv {
@@ -14,30 +25,262 @@ body {
     width: 100%;
 }
 
+/* ==========================================
+   2. INTERACTIVE UI & ACTION BAR
+   ========================================== */
 .action-bar {
     display: flex;
-    flex-direction: column; /* Force items to stack vertically */
+    flex-direction: column; 
     gap: 10px; 
     width: max-content; 
-    
-    position: absolute;
-    z-index: 10;
-    top: 15px;
-    right: 15px; 
+    font-size: 12;
 }
 
+/* Clean, modern button adjustments to match the default ArcGIS aesthetic */
 .addRecordBtn {
     display: block;     
     text-align: center;    
     text-decoration: none;
-    padding: 10px 15px;
-    background-color: #0070c0; 
-    color: white;
-    border-radius: 4px;
-    font-family: sans-serif;
-    font-weight: bold;
+    padding: 8px 14px;
+    background-color: #ffffff;      /* Matches the clean canvas white of default widgets */
+    color: #0077b6;                 /* Ocean blue text instead of aggressive dark navy */
+    border: 1px solid #caf0f8;      /* Soft ice-blue border framework */
+    border-radius: 6px;             /* Matches the exact curvature of standard widgets */
+    font-size: 14px;
+    font-weight: 600;               /* Semi-bold for a sleeker look */
+    box-shadow: 0 2px 6px rgba(0, 91, 150, 0.15); /* Soft, thematic ocean depth shadow */
+    transition: all 0.2s ease-in-out;
 }
 
 .addRecordBtn:hover {
-    background-color: #005a87;
+    background-color: #e0f2fe;     /* Very soft sea-foam tint on hover */
+    color: #03045e;                 /* Deepens slightly for interactive feedback */
+    border-color: #87cefa;          /* Crisp sky blue highlight ring */
+    box-shadow: 0 4px 8px rgba(0, 91, 150, 0.25);
+}
+
+/* ==========================================
+   3. ARCGIS POPUP & WIDGET CUSTOM OVERRIDES
+   ========================================== */
+/* Custom underline affordance on popup links, just like your lab context links */
+.esri-popup__content a {
+    color: #0077b6 !important;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.esri-popup__content a:hover {
+    text-decoration: underline !important;
+}
+
+/* Style standard popup background containers with an ocean ice blur */
+.esri-popup__pointer-clip {
+    z-index: 1;
+}
+
+/* Targets the main popup card to add a sleek shadow matching your lab maps */
+.esri-popup__main-container {
+    box-shadow: 0 4px 12px rgba(0, 91, 150, 0.25) !important;
+    border-radius: 8px !important;
+}
+
+/* ==========================================
+   4. ARCGIS WIDGET GLOBAL THEME OVERRIDES
+   ========================================== */
+/* Main widget containers: Apply the clean box-shadow and crisp borders from your labs */
+.esri-widget--button, 
+.esri-widget {
+    background-color: #ffffff !important;
+    color: #03045e !important; /* Deep sea navy for readable text/icons */
+    border-radius: 6px !important;
+    box-shadow: 0 2px 6px rgba(0, 91, 150, 0.15) !important;
+    border: 1px solid #caf0f8 !important; /* Light ice-blue border */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover states for interactive widget buttons (Zoom in/out, Locate, Home) */
+.esri-widget--button:hover,
+.esri-widget__button:hover {
+    background-color: #e0f2fe !important; /* Matches the clean button hover state */
+    color: #03045e !important;
+    transform: scale(1.02);
+}
+
+/* Active/Selected states inside widgets */
+.esri-widget__button--active,
+.esri-layer-list__item--selected {
+    background-color: #0077b6 !important; /* Deep ocean blue when selected */
+    color: #ffffff !important;
+    border-left: 4px solid #03045e !important;
+}
+
+/* Search Container Widener Adjustment (Desktop Layout Mode Only) */
+.esri-search {
+    width: 380x !important; /* Widened baseline from default 240px-280px for better legibility */
+    transition: width 0.15s ease-in-out;
+}
+
+/* Search Input Bar Custom Adjustments */
+.esri-search__input {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    color: #03045e !important;
+}
+
+.esri-search__submit-button {
+    background-color: #f0f8ff !important; /* Alice Blue container */
+    border-left: 1px solid #caf0f8 !important;
+}
+
+.esri-search__submit-button:hover {
+    background-color: #e0f2fe !important;
+}
+
+/* Restrain the desktop search suggestions menu from spilling off the screen and remove premature scrollbar tracks */
+.esri-search .esri-menu {
+    max-height: 250px !important;
+    overflow: hidden !important; /* Fixed: Prevents scrollbar track from showing when empty */
+    z-index: 9999 !important;
+}
+
+/* Apply scroll logic strictly when menu options list items are actively drawing inside the DOM */
+.esri-search .esri-menu .esri-menu__list {
+    max-height: 240px !important;
+    overflow-y: auto !important; 
+}
+
+/* Headers inside multi-layered widgets (like BasemapGallery or LayerList) */
+.esri-widget__heading {
+    color: #0077b6 !important;
+    font-weight: bold !important;
+    border-bottom: 2px solid #87cefa;
+    padding-bottom: 4px;
+}
+
+/* ==========================================
+   5. ADVANCED RESPONSIVE DESIGN (< 768px)
+   ========================================== */
+@media (max-width: 768px) {
+    /* 1. Force general expanded widgets (floating mode) to safely constrain themselves */
+    .esri-expand__content--expanded {
+        position: fixed !important;
+        top: 15px !important;
+        left: 15px !important;
+        margin-left: 40px !important; /* Shifter margin so toggle buttons stay clear */
+        max-width: calc(90vw - 40px) !important; 
+        max-height: 70vh !important;
+        overflow-y: auto !important; /* Standard widgets like legends scroll internally */
+        box-shadow: 0 4px 15px rgba(0, 91, 150, 0.3) !important;
+    }
+
+    /* 2. Lock down your custom Control Panel widget's size explicitly */
+    #controlPanelExpand .esri-expand__content--expanded {
+        width: 300px !important;
+        max-width: 90vw !important;
+    }
+
+    /* 2b. SEARCH SPECIFIC OVERRIDE: Let the search bar dynamically span the top screen width */
+    #searchExpand .esri-expand__content--expanded {
+        width: calc(100vw - 140px) !important; /* setting the ideal width to 300 px) */
+        max-width: 100% !important;  /* calculate max width as a failsafe if the screen doesn't accommodate the width defined above */ 
+        overflow: visible !important;         /* Hard override preventing container from clipping elements */
+        overflow-y: visible !important;       
+    }
+
+    #searchExpand .esri-search {
+        width: 100% !important; 
+        overflow: visible !important;         /* Keeps Esri's internal input wrappers open */
+    }
+
+    /* 2c. SUGGESTIONS LIST DROPDOWN FIX (Isolated Target Structure) */
+    /* Target the specific suggestions utility class exclusively to avoid triggering the 'No Results' box */
+    #searchExpand .esri-search__suggestions-menu,
+    .esri-search__container .esri-search__suggestions-menu {
+        display: block !important;            
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;           
+        top: 60px !important;                 /* Positions layout directly under mobile search bar container */
+        left: 55px !important;                /* Perfectly aligns right edge along the 40px left-margin layout */
+        width: calc(100vw - 140px) !important; /* Matches explicit visible width of expanded text line input */
+        max-height: 175px !important;
+        overflow: hidden !important;          /* Fixed premature track bar visibility on small screen variants */
+        z-index: 999999 !important;           
+        background-color: #ffffff !important;
+        box-shadow: 0 6px 16px rgba(0, 91, 150, 0.3) !important;
+    }
+
+    /* Force the active suggestion items inside the target menu list to display as readable block items */
+    .esri-search__suggestions-menu .esri-menu__list {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        max-height: 230px !important;
+        overflow-y: auto !important;          /* Enables clean scrolling mechanics only when content bounds fill the tray */
+    }
+    
+    .esri-search__suggestions-menu .esri-menu__list-item {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* 3. Handle internal widget structures gracefully under mobile scroll */
+    .esri-expand__content--expanded > div,
+    .esri-expand__content--expanded .esri-legend,
+    .esri-expand__content--expanded .esri-widget {
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    /* 4. Tweak legend typography slightly so text doesn't overflow container limits */
+    .esri-legend__layer-caption {
+        font-size: 12px !important;
+    }
+
+    /* 5. Custom Control Panel (Fallback position overrides if referenced elsewhere) */
+    .custom-control-panel {
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 40vh;
+        overflow-y: auto;
+        background-color: rgba(240, 248, 255, 0.98); 
+        border-top: 3px solid #0077b6;
+        box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+        z-index: 100;
+    }
+
+    /* 7. OVERLAP FIX: Stack orders on small screens */
+    .esri-ui {
+        z-index: 999 !important; /* Keep ArcGIS UI elements forward */
+    }
+    
+    .action-bar {
+        /* z-index: 1 !important; Keeps action items behind open expand widgets */
+        gap: 6px;
+    }
+
+    .addRecordBtn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    /* ==========================================
+       MOBILE OVERRIDE FOR EDITOR WIDGET
+       ========================================== */
+    /* Prevent the global overflow rules from crushing the Editor's multi-panel layout */
+    #editorExpand .esri-expand__content--expanded {
+        overflow: visible !important;
+        overflow-y: visible !important;
+        width: 280px !important;
+    }
+
+    /* Ensure the internal editor container fills out cleanly and handles its own scroll */
+    #editorExpand .esri-editor {
+        max-height: 60vh !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
 }

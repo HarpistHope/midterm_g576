@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <title>GoDivePure - Michigan Web GIS</title>
+    <title>GoDivePure</title>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
     <link rel="stylesheet" href="css/styles.css" />
@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <div class="action-bar">
+    <div class="action-bar" id="actionBar">
         <a href="https://arcg.is/1SuGXS1" target="_blank" class="addRecordBtn">Log New Site</a>
         <a href="https://arcg.is/1y5a993" target="_blank" class="addRecordBtn">Add New Event</a>
         </div>
@@ -22,3 +22,5 @@
     <script type="module" src="js/main.js"></script>
 </body>
 </html>
+
+<!-- To-do: Add edit button to survey result popups (I think editing of the survey is already enabled? do I need to do that differently somehow?); edit button not populating in mobile view; clean up code, delete unnecessary itterations but keep comments; increase border width of popups slightly; make desktop popups slightly more wide/less tall and centered along the bottom section of the screen; limit height of mobile popups so it doesn't overlap selected features, give mobile popups some padding so it looks like the popup is floating in the screen rather than just a big block along the bottom; make overall esthetics work with the nova basemap (maybe more orange outlines? Or should I keep the blue?)-->
