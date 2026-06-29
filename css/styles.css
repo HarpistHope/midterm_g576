@@ -1,6 +1,3 @@
-/* ==========================================
-   1. GLOBAL STYLES & TYPOGRAPHY
-   ========================================== */
 html,
 body {
     height: 100vh;
@@ -11,7 +8,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Force ArcGIS widgets and popups to inherit your font choice */
+/* Use !important to override default ArcGIS font with my own choice -- I end up using !important a lot for this app */
 .esri-widget, 
 .esri-popup__content,
 .esri-popup__header-title {
@@ -25,44 +22,41 @@ body {
     width: 100%;
 }
 
-/* ==========================================
-   2. INTERACTIVE UI & ACTION BAR
-   ========================================== */
+/* spacing and position of the Log/Add New Record buttons and the edit widget */
 .action-bar {
     display: flex;
     flex-direction: column; 
     gap: 10px; 
     width: max-content; 
-    font-size: 12;
+    font-size: 12px;
 }
 
-/* Clean, modern button adjustments to match the default ArcGIS aesthetic */
+/* Stylize the Add New Record (site/event) buttons */
 .addRecordBtn {
     display: block;     
     text-align: center;    
     text-decoration: none;
     padding: 8px 14px;
-    background-color: #ffffff;      /* Matches the clean canvas white of default widgets */
-    color: #0077b6;                 /* Ocean blue text instead of aggressive dark navy */
-    border: 1px solid #caf0f8;      /* Soft ice-blue border framework */
-    border-radius: 6px;             /* Matches the exact curvature of standard widgets */
+    background-color: #ffffff;     
+    color: #0077b6;                
+    border: 2px solid #035c8b;     
+    border-radius: 6px;  /* adds slight curvature */
     font-size: 14px;
-    font-weight: 600;               /* Semi-bold for a sleeker look */
-    box-shadow: 0 2px 6px rgba(0, 91, 150, 0.15); /* Soft, thematic ocean depth shadow */
-    transition: all 0.2s ease-in-out;
+    font-weight: 600; 
+    box-shadow: 0 2px 6px rgba(0, 91, 150, 0.15); 
+    transition: all 0.2s ease-in-out; /* helps the style transition on hover appear smooth (see below) */
 }
 
 .addRecordBtn:hover {
-    background-color: #e0f2fe;     /* Very soft sea-foam tint on hover */
-    color: #03045e;                 /* Deepens slightly for interactive feedback */
-    border-color: #87cefa;          /* Crisp sky blue highlight ring */
+    background-color: #e0f2fe;    
+    color: #03045e;                
+    border-color: #87cefa;        
     box-shadow: 0 4px 8px rgba(0, 91, 150, 0.25);
 }
 
-/* ==========================================
-   3. ARCGIS POPUP & WIDGET CUSTOM OVERRIDES
-   ========================================== */
-/* Custom underline affordance on popup links, just like your lab context links */
+
+/* my AI assistant helped me figure out how to target specific parts of the popups for stylizing */
+/* these parts stylize and underline the clickable links in the popups */
 .esri-popup__content a {
     color: #0077b6 !important;
     text-decoration: none;
@@ -73,32 +67,181 @@ body {
     text-decoration: underline !important;
 }
 
-/* Style standard popup background containers with an ocean ice blur */
-.esri-popup__pointer-clip {
-    z-index: 1;
-}
-
-/* Targets the main popup card to add a sleek shadow matching your lab maps */
+/* Here is the main stylizing block for the popups */
 .esri-popup__main-container {
-    box-shadow: 0 4px 12px rgba(0, 91, 150, 0.25) !important;
-    border-radius: 8px !important;
+    padding: 10px;
+    box-shadow: 0 4px 15px rgba(0, 91, 150, 0.3) !important;
+    border-radius: 15px !important;
+    border: 2px solid #0077b6 !important;
+    width: 490px !important;     
+    max-width: 90vw !important;
+    max-height: 200px !important;
 }
 
-/* ==========================================
-   4. ARCGIS WIDGET GLOBAL THEME OVERRIDES
-   ========================================== */
-/* Main widget containers: Apply the clean box-shadow and crisp borders from your labs */
+/* This styles the dive difficulty warning sections of my shipwreck popups */
+.popup-advisory {
+    font-weight: bold; 
+    color: #b30000; 
+    margin-bottom: 8px;
+}
+
+/* These next four blocks style the tables within the popups */
+.popup-table {
+    width: 100%; 
+    border-collapse: collapse;
+    margin-bottom: 8px;
+}
+
+.popup-table.layout-fixed {
+    table-layout: fixed;
+}
+
+.popup-table th {
+    text-align: left; 
+    padding: 6px;
+    background-color: #f4f4f4;
+}
+
+.popup-table td {
+    padding: 6px;
+}
+
+/* this decreases padding to 4px for the shipwreck popups since there is so much information */
+.shipwreckPopup-template .popup-table th,
+.shipwreckPopup-template .popup-table td {
+    padding: 4px;
+}
+
+/* on to the popup text elements! Again, the AI assistant taught me how to target specific areas for unique styling */
+.popup-description,
+.popup-text-main {
+    margin-top: 10px; 
+    font-size: 13px; 
+    line-height: 1.4;
+}
+
+.popup-section-title {
+    margin: 12px 0 4px 0; 
+    color: #0070c0;
+}
+
+.popup-text-optional {
+    margin: 0 0 12px 0; 
+    font-size: 13px; 
+    font-style: italic; 
+    color: #555;
+}
+
+.popup-attribution {
+    font-size: 11px; 
+    color: #888; 
+    margin-top: 12px; 
+    text-align: right;
+}
+
+.popup-preserve-content {
+    line-height: 1.5;
+}
+
+.popup-preserve-content .popup-table {
+    margin-bottom: 12px;
+}
+
+.popup-crowdsourced-content {
+    line-height: 1.5;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
+.text-alert {
+    color: #b30000;
+}
+
+
+/* For all that it isn't too big, the control panel was pretty intense to style, but I like the final outcome */
+.control-panel-container {
+    padding: 10px;
+    background-color: white; 
+    border: 2px solid #005b96; 
+    border-radius: 8px;
+    width: 260px;
+    box-shadow: 0 4px 10px rgba(0, 91, 150, 0.25);
+}
+
+.control-panel-container .panel-main-title {
+    margin: 0 0 12px 0; 
+    font-size: 15px; 
+    color: #333; 
+    border-bottom: 1px solid #ddd; 
+    padding-bottom: 6px;
+}
+
+.control-panel-container .panel-section-group {
+    margin-bottom: 14px;
+}
+
+.control-panel-container .panel-section-group.dynamic-filters {
+    border-top: 1px solid #eee; 
+    padding-top: 10px;
+    margin-bottom: 0;
+}
+
+.control-panel-container .panel-section-title {
+    font-weight: bold; 
+    display: block; 
+    margin-bottom: 6px; 
+    color: #555;
+}
+
+.control-panel-container label {
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 5px; 
+    cursor: pointer;
+}
+
+.control-panel-container input[type="checkbox"] { /* the AI assistant was super helpful when figuring out how to call/target these niche objects! */
+    margin-right: 8px;
+}
+
+.control-panel-container .filter-input-wrapper {
+    margin-bottom: 10px;
+}
+
+.control-panel-container .filter-input-wrapper:last-child {
+    margin-bottom: 0;
+}
+
+.control-panel-container .filter-input-wrapper label {
+    font-size: 12px; 
+    color: #666; 
+    display: block; 
+    margin-bottom: 3px;
+}
+
+.control-panel-container select {
+    width: 100%; 
+    padding: 4px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    cursor: pointer;
+}
+
+/* Next, the widgets */
+/* This is the overall style for all the main widget containers; again, I used !important to override the default ArcGIS design*/
 .esri-widget--button, 
 .esri-widget {
     background-color: #ffffff !important;
-    color: #03045e !important; /* Deep sea navy for readable text/icons */
+    color: #03045e !important;
     border-radius: 6px !important;
     box-shadow: 0 2px 6px rgba(0, 91, 150, 0.15) !important;
-    border: 1px solid #caf0f8 !important; /* Light ice-blue border */
+    border: 1px solid #caf0f8 !important; 
     transition: all 0.2s ease-in-out;
 }
 
-/* Hover states for interactive widget buttons (Zoom in/out, Locate, Home) */
+/* Hover styles for the interactive widgets (zoom, locate, edit, legend, control panel expand) */
 .esri-widget--button:hover,
 .esri-widget__button:hover {
     background-color: #e0f2fe !important; /* Matches the clean button hover state */
@@ -106,21 +249,21 @@ body {
     transform: scale(1.02);
 }
 
-/* Active/Selected states inside widgets */
+/* AI helped me change the styles when the widgets are active vs selected */
 .esri-widget__button--active,
 .esri-layer-list__item--selected {
-    background-color: #0077b6 !important; /* Deep ocean blue when selected */
+    background-color: #0077b6 !important; 
     color: #ffffff !important;
     border-left: 4px solid #03045e !important;
 }
 
-/* Search Container Widener Adjustment (Desktop Layout Mode Only) */
+/* Customizing the search button actually took a bit of time as well. */
 .esri-search {
-    width: 380x !important; /* Widened baseline from default 240px-280px for better legibility */
-    transition: width 0.15s ease-in-out;
+    width: 300px;
+    border: 2px solid #0077b6 !important;
 }
 
-/* Search Input Bar Custom Adjustments */
+/* Customized input bar and submit button styles */
 .esri-search__input {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     color: #03045e !important;
@@ -135,20 +278,20 @@ body {
     background-color: #e0f2fe !important;
 }
 
-/* Restrain the desktop search suggestions menu from spilling off the screen and remove premature scrollbar tracks */
+/* Targeting .esri-menu allowed me to keep the search suggestions menu from spilling off the screen and remove the scrollbar from showing prematurely */
 .esri-search .esri-menu {
     max-height: 250px !important;
-    overflow: hidden !important; /* Fixed: Prevents scrollbar track from showing when empty */
+    overflow: hidden !important; 
     z-index: 9999 !important;
 }
 
-/* Apply scroll logic strictly when menu options list items are actively drawing inside the DOM */
+/* Reactivating the scrollbar when the menu list is active*/
 .esri-search .esri-menu .esri-menu__list {
     max-height: 240px !important;
     overflow-y: auto !important; 
 }
 
-/* Headers inside multi-layered widgets (like BasemapGallery or LayerList) */
+/* Finally for the widgets, a custom style for the headers inside multi-layered widgets (like legend and editor) */
 .esri-widget__heading {
     color: #0077b6 !important;
     font-weight: bold !important;
@@ -156,52 +299,51 @@ body {
     padding-bottom: 4px;
 }
 
-/* ==========================================
-   5. ADVANCED RESPONSIVE DESIGN (< 768px)
-   ========================================== */
+
+   /* This next section adapts the styles and positions of everything on smaller/mobile screens (<768px) */
 @media (max-width: 768px) {
-    /* 1. Force general expanded widgets (floating mode) to safely constrain themselves */
+
+    /* This part forces the expanded widgets to safely constrain themselves */
     .esri-expand__content--expanded {
         position: fixed !important;
         top: 15px !important;
         left: 15px !important;
-        margin-left: 40px !important; /* Shifter margin so toggle buttons stay clear */
+        margin-left: 40px !important; /* Shifted the margin so the toggle buttons stay clear */
         max-width: calc(90vw - 40px) !important; 
         max-height: 70vh !important;
-        overflow-y: auto !important; /* Standard widgets like legends scroll internally */
+        overflow-y: auto !important; /* allows internal scroll */
         box-shadow: 0 4px 15px rgba(0, 91, 150, 0.3) !important;
     }
 
-    /* 2. Lock down your custom Control Panel widget's size explicitly */
+    /* sets the exact size of the expanded widgets -- the AI assistant again helped me figure out how to target this area exactly */
     #controlPanelExpand .esri-expand__content--expanded {
         width: 300px !important;
         max-width: 90vw !important;
     }
 
-    /* 2b. SEARCH SPECIFIC OVERRIDE: Let the search bar dynamically span the top screen width */
+    /* the search bar+expand widget needed some extra sizing/positioning help - this lets the search bar dynamically span the top screen width */
     #searchExpand .esri-expand__content--expanded {
-        width: calc(100vw - 140px) !important; /* setting the ideal width to 300 px) */
-        max-width: 100% !important;  /* calculate max width as a failsafe if the screen doesn't accommodate the width defined above */ 
-        overflow: visible !important;         /* Hard override preventing container from clipping elements */
+        width: calc(100vw - 140px) !important; 
+        max-width: 100% !important;  /* failsafe max width */ 
+        overflow: visible !important;         /* Hard override prevents the container from clipping elements */
         overflow-y: visible !important;       
     }
 
     #searchExpand .esri-search {
         width: 100% !important; 
-        overflow: visible !important;         /* Keeps Esri's internal input wrappers open */
+        overflow: visible !important;    
     }
 
-    /* 2c. SUGGESTIONS LIST DROPDOWN FIX (Isolated Target Structure) */
-    /* Target the specific suggestions utility class exclusively to avoid triggering the 'No Results' box */
+    /* The 'No Results' box kept activating even when a result was given; AI helped me target the specific suggestions utility class to stop that behavior */
     #searchExpand .esri-search__suggestions-menu,
     .esri-search__container .esri-search__suggestions-menu {
         display: block !important;            
         visibility: visible !important;
         opacity: 1 !important;
         position: fixed !important;           
-        top: 60px !important;                 /* Positions layout directly under mobile search bar container */
-        left: 55px !important;                /* Perfectly aligns right edge along the 40px left-margin layout */
-        width: calc(100vw - 140px) !important; /* Matches explicit visible width of expanded text line input */
+        top: 60px !important;                
+        left: 55px !important;                
+        width: calc(100vw - 140px) !important; 
         max-height: 175px !important;
         overflow: hidden !important;          /* Fixed premature track bar visibility on small screen variants */
         z-index: 999999 !important;           
@@ -209,13 +351,13 @@ body {
         box-shadow: 0 6px 16px rgba(0, 91, 150, 0.3) !important;
     }
 
-    /* Force the active suggestion items inside the target menu list to display as readable block items */
+    /* These force the suggested places inside the menu list to show as readable block items */
     .esri-search__suggestions-menu .esri-menu__list {
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
         max-height: 230px !important;
-        overflow-y: auto !important;          /* Enables clean scrolling mechanics only when content bounds fill the tray */
+        overflow-y: auto !important;    
     }
     
     .esri-search__suggestions-menu .esri-menu__list-item {
@@ -224,7 +366,7 @@ body {
         opacity: 1 !important;
     }
 
-    /* 3. Handle internal widget structures gracefully under mobile scroll */
+    /* Keeps things from spilling off the edges of the mobile screen */
     .esri-expand__content--expanded > div,
     .esri-expand__content--expanded .esri-legend,
     .esri-expand__content--expanded .esri-widget {
@@ -232,55 +374,69 @@ body {
         width: 100% !important;
     }
 
-    /* 4. Tweak legend typography slightly so text doesn't overflow container limits */
+    /* Changes the legend font slightly so it fits better on the mobile device */
     .esri-legend__layer-caption {
         font-size: 12px !important;
     }
 
-    /* 5. Custom Control Panel (Fallback position overrides if referenced elsewhere) */
-    .custom-control-panel {
-        width: 100%;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 40vh;
-        overflow-y: auto;
-        background-color: rgba(240, 248, 255, 0.98); 
-        border-top: 3px solid #0077b6;
-        box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
-        z-index: 100;
-    }
-
-    /* 7. OVERLAP FIX: Stack orders on small screens */
+    /* This fixed some overlap issues by keeping the ArcGIS UI elements further forward */
     .esri-ui {
-        z-index: 999 !important; /* Keep ArcGIS UI elements forward */
+        z-index: 999 !important; 
     }
     
+    /* reduced the gap between the log/add record buttons + edit widget */
     .action-bar {
-        /* z-index: 1 !important; Keeps action items behind open expand widgets */
         gap: 6px;
     }
 
+    /* slight modification to the size of the record buttons */
     .addRecordBtn {
         padding: 6px 12px;
         font-size: 12px;
     }
 
-    /* ==========================================
-       MOBILE OVERRIDE FOR EDITOR WIDGET
-       ========================================== */
-    /* Prevent the global overflow rules from crushing the Editor's multi-panel layout */
-    #editorExpand .esri-expand__content--expanded {
+
+    /* The edit button wouldn't populate when expanded at first; the AI assistant helped me with this solution: 
+    From the AI assistant: "FIX: Target the expanded panel by looking for the internal editor class, 
+    since Esri detaches the container from #editorExpand on mobile" */
+    .esri-expand__content--expanded:has(.esri-editor) {
         overflow: visible !important;
         overflow-y: visible !important;
-        width: 280px !important;
+        width: 270px !important;
+        height: 240px;
+        position: fixed !important; /* Ensures it pops up nicely on mobile screens */
+        top: 15px !important;      
+        right: 45px !important;
+        left: auto !important;
     }
 
     /* Ensure the internal editor container fills out cleanly and handles its own scroll */
-    #editorExpand .esri-editor {
+    .esri-expand__content--expanded .esri-editor {
         max-height: 60vh !important;
         overflow-y: auto !important;
         display: flex !important;
         flex-direction: column !important;
+        width: 100% !important;
+    }
+
+   /* Here I change the position and size of the popups for mobile screens */
+    .esri-popup__main-container {
+        position: fixed !important;
+        bottom: 30px !important;          
+        left: 15px !important;          
+        right: 15px !important;          
+        width: calc(100% - 35px) !important; 
+        max-height: 32vh !important;      
+        margin: 0 auto !important;
+        border-radius: 15px !important;  
+        border: 2px solid #0077b6 !important;
+    }
+}
+
+/* Finally, I added a mid-size desktop style block to keep the popup from overlapping the control panel if the user decreases the screen size but doesn't fully switch to a mobile sized screen*/
+@media (min-width: 769px) and (max-width: 1100px) {
+    /* This slims down the desktop popup container so it occupies less horizontal workspace */
+    .esri-popup__main-container {
+        width: 380px !important; 
     }
 }
