@@ -11,7 +11,7 @@ The **GoDivePure** application fills this gap, offering a centralized geospatial
 
 The user interface features a sleek **Nova basemap** canvas overlaid with a high-resolution bathymetric tile layer, official underwater preserve boundaries, and shipwreck markers defined by the Michigan Department of Natural Resources. Advanced query tools inside a custom control panel allow users to dynamically filter marked dive spots by depth and dive difficulty. Moving away from external form routing, the application leverages the native **ArcGIS Maps SDK Editor Framework**, providing an inline workflow for users to append new spatial features to the map via two distinct operational pipelines:
 1. **"Log New Site"**: Allows divers to log new dive sites with explicit geographic coordinates and localized descriptions.
-2. **"Add New Dive Event"**: Lets users crowdsource planned group outings by inputting dates, exact locations, and expected difficulty levels.
+2. **"Add New Event"**: Lets users crowdsource planned group outings by inputting dates, exact locations, and expected difficulty levels.
 
 These crowdsourced feature layers are hosted natively on ArcGIS Online and can be toggled on or off within the interactive view framework. Finally, using interactive, responsive popups optimized to step out of the way on smaller screens, divers can seamlessly execute spatial updates to pre-existing live site records to adjust live condition reports or append localized safety descriptions. Inspired by the Pure Michigan campaign, GoDivePure aims to boost maritime tourism, improve diving safety through peer-to-peer condition reporting, and foster a close-knit diving community across the Great Lakes.
 
