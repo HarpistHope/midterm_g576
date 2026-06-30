@@ -1,5 +1,5 @@
 # GoDivePure App 
-**GEOG 576: Midterm Project — Summer 2026** **Developer:** Hope McBride  
+**GEOG 576: Midterm Project — Summer 2026** — **Developer:** Hope McBride  
 
 ---
 
