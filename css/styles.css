@@ -8,7 +8,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Use !important to override default ArcGIS font with my own choice -- I end up using !important a lot for this app */
+/* This block uses !important to override default ArcGIS font with my own choice (I end up using !important styles a lot for this app) */
 .esri-widget, 
 .esri-popup__content,
 .esri-popup__header-title {
@@ -44,7 +44,7 @@ body {
     font-size: 14px;
     font-weight: 600; 
     box-shadow: 0 2px 6px rgba(0, 91, 150, 0.15); 
-    transition: all 0.2s ease-in-out; /* helps the style transition on hover appear smooth (see below) */
+    transition: all 0.2s ease-in-out; /* helps the style-transition on hover appear smooth (see below) */
 }
 
 .addRecordBtn:hover {
@@ -244,7 +244,7 @@ body {
 /* Hover styles for the interactive widgets (zoom, locate, edit, legend, control panel expand) */
 .esri-widget--button:hover,
 .esri-widget__button:hover {
-    background-color: #e0f2fe !important; /* Matches the clean button hover state */
+    background-color: #e0f2fe !important;
     color: #03045e !important;
     transform: scale(1.02);
 }
@@ -270,7 +270,7 @@ body {
 }
 
 .esri-search__submit-button {
-    background-color: #f0f8ff !important; /* Alice Blue container */
+    background-color: #f0f8ff !important;
     border-left: 1px solid #caf0f8 !important;
 }
 
@@ -334,7 +334,7 @@ body {
         overflow: visible !important;    
     }
 
-    /* The 'No Results' box kept activating even when a result was given; AI helped me target the specific suggestions utility class to stop that behavior */
+    /* The 'No Results' box kept activating even when a result was given; Gemini helped me target the specific suggestions utility class to stop that behavior */
     #searchExpand .esri-search__suggestions-menu,
     .esri-search__container .esri-search__suggestions-menu {
         display: block !important;            
@@ -396,9 +396,8 @@ body {
     }
 
 
-    /* The edit button wouldn't populate when expanded at first; the AI assistant helped me with this solution: 
-    From the AI assistant: "FIX: Target the expanded panel by looking for the internal editor class, 
-    since Esri detaches the container from #editorExpand on mobile" */
+    /* The edit button wouldn't populate when expanded at first; Gemini helped me identify the exact problem area and craft this solution: 
+    From Gemini: "FIX: Target the expanded panel by looking for the internal editor class, since Esri detaches the container from #editorExpand on mobile" */
     .esri-expand__content--expanded:has(.esri-editor) {
         overflow: visible !important;
         overflow-y: visible !important;
@@ -435,7 +434,7 @@ body {
 
 /* Finally, I added a mid-size desktop style block to keep the popup from overlapping the control panel if the user decreases the screen size but doesn't fully switch to a mobile sized screen*/
 @media (min-width: 769px) and (max-width: 1100px) {
-    /* This slims down the desktop popup container so it occupies less horizontal workspace */
+    /* Make the desktop popup container narrower on midsize screens*/
     .esri-popup__main-container {
         width: 380px !important; 
     }

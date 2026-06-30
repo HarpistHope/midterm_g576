@@ -2,7 +2,7 @@
 export function setupLocationServices(view) {
     require(["esri/widgets/Locate"], (Locate) => {
         
-        // create location widget with a timeout limit to catch exhessive loading time
+        // create locate widget with a timeout limit to catch exhessive loading time
         const locateBtn = new Locate({
             view: view,
             geolocationOptions: {

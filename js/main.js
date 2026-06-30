@@ -1,11 +1,11 @@
-// import functions from other js files (map.js and location.js)
+// main.js: import functions from other js files (map.js and location.js)
 import { initMap } from './map.js';
 import { setupLocationServices } from './location.js';
 
 // Define API key (set up in previous labs)
 const API_KEY = "AAPTaZ2rQpZ3e_kAjLMbAoRHR0g.._fqqp4bDNHHZdzTSsp9AO-QkJHtKqpaj-7Xv25F1YGAftgihPfF0YtKx3TlgjV1fIfgz5d5KD1tO1WludBUUE8UK14qZyasG6wdcyVgej-0RvTJlT6Cqr8NSnHJs2CR-QKtZ6cx1a-DlDQQytvHfcbHYyH2--XMqzLkkWez9t3HIMhqczJVoVTeXmERX-Sc_6OCF9zTuUnAuesDvugrzl5GUAN3LGTz2Zteo1pZkcrVPu2RRO94cFDhn8pvWIVGFeUSd7-icAT1_FDhHahp4";
 
-// Initialize the spatial interface with .catch error failsafes
+// Initialize the spatial interface
 initMap("viewDiv", API_KEY)
     .then((view) => { // wrapped in a then/catch to monitor for errors
         console.log("Map View initialized successfully.");
@@ -47,7 +47,7 @@ initMap("viewDiv", API_KEY)
                     const controlPanelExpand = view.ui.find("controlPanelExpand");
 
                     if (isMobile) {
-                        // if the screen is mobile, add the search widget collapsed within the expand widgets
+                        // if the screen is mobile-sized, add the search widget collapsed within the expand widgets
                         view.ui.remove(searchWidget);
                         view.ui.add(searchExpand, { 
                             position: "top-left",
@@ -90,7 +90,7 @@ initMap("viewDiv", API_KEY)
             // Kickoff geolocation layer integration
             setupLocationServices(view);
             
-            // This segment was adapted (with AI's help) from ArcGIS Maps SDK hitTest sample logic to prioritize point selections over polygons (shipwrecks, events, sites over preserves)
+            // This segment was adapted (with AI's help) from ArcGIS Maps SDK hitTest sample logic to prioritize point selections over polygons (i.e., shipwrecks, events, sites over preserves)
             // Priority click handler for overlapping features
             view.on("click", (event) => {
                 event.stopPropagation(); // Stop default event bubbling

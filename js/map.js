@@ -1,7 +1,7 @@
 // map.js manages map layer loading and configurations 
 export function initMap(viewContainerId, apiKey) {
     return new Promise((resolve, reject) => {
-        require([           // I start by calling all the esri layers I use for this app
+        require([           // I start by calling all the esri layers I use for the GoDivePure app
             "esri/config", 
             "esri/Map", 
             "esri/views/MapView", 
@@ -13,13 +13,13 @@ export function initMap(viewContainerId, apiKey) {
             "esri/widgets/Editor"
         ], (esriConfig, Map, MapView, TileLayer, FeatureLayer, Legend, Expand, Zoom, Editor) => {
             
-            // I wrap the script in a try/catch statement to help monitor for/catch errors
+            // I've wrapped the script in a try/catch statement to help monitor for/catch errors
             try {
 
                 // defined in main.js
                 esriConfig.apiKey = apiKey; 
 
-                // Attribution: Esri, Garmin, GIS User Community (I preferred the look of the Nova basemap over the dark canvas basemap from my abstract)
+                // Nova Map Attribution: Esri, Garmin, GIS User Community (I preferred the look of the Nova basemap over the dark grey canvas basemap listed in my original abstract)
                 const map = new Map({
                     basemap: "arcgis-nova"
                 });
@@ -54,19 +54,19 @@ export function initMap(viewContainerId, apiKey) {
                         }
                     },
 
-                    // Manually remove the default widgets (except for attributions)  so I can manually add the zoom widget in a specific index position
+                    // Manually remove the default widgets (except for attributions)  so I can re-add the zoom widget in a specific index position
                     ui: {
                         components: ["attribution"]
                     }
 
-                }); // end of const view setup
+                }); // end of view setup
 
                 // Shipwreck popup template
                 const shipwreckPopup = {
                     title: "Shipwreck: {Vessel}",
                     expressionInfos: [{
 
-                        // I added a difficulty safety advisory to highlight the most critical info users should see
+                        // I added a safety advisory to highlight the most critical dive difficulty info users should see
                         name: "difficulty-warning",
                         title: "Safety Advisory",
 
@@ -201,6 +201,7 @@ export function initMap(viewContainerId, apiKey) {
                 }; 
 
                 // Initialize/load the tile/feature layers
+                // Bathymetry layer attribution: Esri Canada Education & Research (with additional acknowledgements to NOAA)
                 const bathymetryLayer = new TileLayer({
                     url: "https://tiles.arcgis.com/tiles/As5CFN3ThbQpy8Ph/arcgis/rest/services/Bathymetry_of_the_Great_Lakes/MapServer",
                     resampling: true, // added so the layer would still render (if pixilated) when zoomed in
@@ -208,6 +209,7 @@ export function initMap(viewContainerId, apiKey) {
                 });
                 map.add(bathymetryLayer); 
 
+                // Preserves layer attribution: Michigan Department of Natural Resources (Item managed by RubleyM1_dnr, additional acknowledgements to Michigan Underwater Preserves Council, Inc. and Noble Odyssey Foundation)
                 // Load underwater preserves feature layer
                 const preservesLayer = new FeatureLayer({
                     url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/Great_Lakes_Underwater_Preserves/FeatureServer",
@@ -217,6 +219,7 @@ export function initMap(viewContainerId, apiKey) {
                 });
                     map.add(preservesLayer);
 
+                // Shipwreck layer attribution: Michigan Department of Natural Resources (Item managed by RubleyM1_dnr, additional acknowledgements to Michigan Underwater Preserves Council, Inc. (MUPC))
                 // Load Shipwreck Feature Layer
                 const shipwreckLayer = new FeatureLayer({
                     url: "https://services3.arcgis.com/Jdnp1TjADvSDxMAX/arcgis/rest/services/MUPC_Shipwreck_Locations_2020_view/FeatureServer",
@@ -225,7 +228,7 @@ export function initMap(viewContainerId, apiKey) {
                     });
                 map.add(shipwreckLayer);
 
-                // Create/load dive sites feature layer from feature service (dive site survey results)
+                // Create/load dive sites feature layer from feature service (dive site survey results, created and hosted on ArcGIS Online by me, Hope McBride)
                 const sitesLayer = new FeatureLayer({ 
                     url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_545711b0719d4502811e6c2c705bf508_results/FeatureServer",
                     id: "sites-layer",
@@ -234,7 +237,7 @@ export function initMap(viewContainerId, apiKey) {
                 });
                 map.add(sitesLayer);
 
-                // Create/load dive events feature layer from feature service (events survey results)
+                // Create/load dive events feature layer from feature service (events survey results, created and hosted on ArcGIS Online by Hope McBride)
                 const eventsLayer = new FeatureLayer({ 
                     url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_930afbf904a4467f970813922117a325_results/FeatureServer",
                     id: "events-layer",
@@ -243,9 +246,9 @@ export function initMap(viewContainerId, apiKey) {
                 });
                 map.add(eventsLayer);
 
-                 // One main feature of my app is the unified control panel that allows users to toggle feature layers and filter by certain attributes
+                 // One of the main features of my app is the unified control panel that allows users to toggle feature layers and filter by certain attributes
                 // I first tried to use a layers list but that widget does not have Filter by Attribute capabilities so I had to custom make a new panel
-                 // As the design became fairly technical, I utilized the AI assistant to help explain and implement the full panel design
+                 // As the design became fairly technical, I utilized several AI assistants to help explain and implement the full panel design
 
                 //Create a styled container for the unified control panel
                 const controlPanelContainer = document.createElement("div");
@@ -305,7 +308,7 @@ export function initMap(viewContainerId, apiKey) {
                 });
                 view.ui.add(controlPanelExpand, "top-left");
 
-                // add the zoom widget (removed above so I can manually specify the index position)
+                // add the zoom widget (removed default UI zoom above so I can manually specify the index position)
                 const zoomWidget = new Zoom({
                     view: view,
                     index: 2
